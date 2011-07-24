@@ -117,31 +117,6 @@ class M3.Board
 				index = i * nElmts + j
 				_verts[index] = _verts[index] * SCALE
 			
-
-		###
-			0, 0, 0,   0, 0,   0,  0,  1,
-			1, 1, 0,   1, 1,   0,  0,  1,
-			1, 0, 0,   1, 0,   0,  0,  1,
-
-		v1 = 1, 0, 0
-		v2 = 1, 1, 0
-		###
-		###
-		generateNormalAndTangent(float3 v1, float3 v2, text2 st1, text2 st2)
-		{
-			float3 normal = v1.crossProduct(v2);
-
-			float coef = 1/ (st1.u * st2.v - st2.u * st1.v);
-			float3 tangent;
-
-			tangent.x = coef * ((v1.x * st2.v)  + (v2.x * -st1.v));
-			tangent.y = coef * ((v1.y * st2.v)  + (v2.y * -st1.v));
-			tangent.z = coef * ((v1.z * st2.v)  + (v2.z * -st1.v));
-
-			float3 binormal = normal.crossProduct(tangent);
-		}
-		###
-
 		# full vert and index list
 		verts = []
 		
