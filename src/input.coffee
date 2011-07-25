@@ -19,6 +19,9 @@
 
 
 class M3.Input
+	CLICK_TIMEOUT = 200 #ms
+	CLICK_TRAVEL = 15 #pix
+
 	constructor: (@M, agent) ->
 		# map keycodes to a string for mapping to commands
 		@code2name = 
@@ -87,9 +90,12 @@ class M3.Input
 		@mouseDragState = false # false, or e.button when dragging
 		@mouseMap =
 			"skin":
-				"0": agent.mouse_leftclick
-				"1": agent.mouse_middleclick
-				"2": agent.mouse_rightclick
+				"bclick0": agent.browser_leftclick
+				"bclick1": agent.browser_middleclick
+				"bclick2": agent.browser_rightclick
+				"click0": agent.mouse_leftclick
+				"click1": agent.mouse_middleclick
+				"click2": agent.mouse_rightclick
 				"+drag0": agent.mouse_dragturn_on
 				"@drag0": agent.mouse_dragturn_event
 				"-drag0": agent.mouse_dragturn_off
@@ -100,6 +106,9 @@ class M3.Input
 		# track the mouse position
 		# x=x, y=y, z=state(0 for outside, 1 for inside canvas)
 		@mousePosition = vec3.create()
+		
+		# track mouse position at mousedown
+		@downPosition = null;
 
 		# bind to dom
 		$( @M.canvas ).click(@onClick)
@@ -119,11 +128,10 @@ class M3.Input
 			@keyup2action[keyname] = "-" + action[1...action.length]
 
 
-	## Event Handlers	
+	## Event Handlers
 	onClick: (e) =>
-		console.log("click")
-
-		callback = @actionMap[@mode][e.button]
+		# NOTE: this reports click, even after dramatic movement, or time passage
+		callback = @mouseMap[@mode][ "bclick" + String(e.button) ]
 		callback(e.clientX, e.clientY) if callback?
 
 
@@ -134,9 +142,11 @@ class M3.Input
 			return if @mouseDragState isnt false
 			
 			@mouseDragState = e.button
+			@downPosition = [e.clientX, e.clientY, (new Date()).getTime()]
 
 			callback = @mouseMap[@mode][ "+drag" + String(e.button) ]
 			callback(e.clientX, e.clientY) if callback?
+			
 
 
 	onMouseUp: (e) =>
@@ -151,6 +161,17 @@ class M3.Input
 			callback() if callback?
 
 			@mouseDragState = false
+
+			# get delta from initial position and time and emit a click if 
+			#	this was a click-like event
+			deltaT = (new Date()).getTime() - @downPosition[2]
+			if deltaT < CLICK_TIMEOUT
+				dX = e.clientX - @downPosition[0]
+				dY = e.clientY - @downPosition[1]
+				deltaV = Math.sqrt(dX * dX + dY * dY)
+				if deltaV < CLICK_TRAVEL
+					callback = @mouseMap[@mode][ "click" + String(e.button) ]
+					callback(e.clientX, e.clientY) if callback?
 
 
 	onMouseOver: (e) =>

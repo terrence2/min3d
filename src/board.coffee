@@ -176,13 +176,13 @@ class M3.Board
 		# the shader to draw the cubes		
 		@shader = M.loadShaderFromElements("cube-vs", "cube-fs",
 			["aVertexPosition", "aTextureCoord", "aVertexNormal", "aState", "aFocus"], 
-			["uMVMatrix", "uPMatrix", "uSampler", "uNormals", "uSkymap", "uReflectivity", "uSunDir", "uSunColor"])
+			["uMVMatrix", "uPMatrix", "uSampler", "uNormals", "uSkymap", "uReflectivity", "uMark", "uSunDir", "uSunColor"])
 		
 		# load textures for the cube
 		@cubeFaceTex = @M.loadTexture "/materials/cube/color-256.jpg"
 		@cubeNormalTex = @M.loadTexture "/materials/cube/normal-256.png"
 		@cubeReflectivityTex = @M.loadTexture "/materials/cube/reflectivity-256.png"
-
+		@cubeMarkTex = @M.loadTexture "/materials/cube/marked-512.png"
 
 		## ## DEBUG ## ##
 		
@@ -234,7 +234,7 @@ class M3.Board
 	move: (dt) ->
 		;	
 	
-	
+
 	draw: ->
 		@updateFocus()
 		@updateStateBuf()
@@ -271,6 +271,8 @@ class M3.Board
 		@M.skybox.cubeMap.bind(3)
 		@shader.linkSampler('uSkymap', @M.skybox.cubeMap)
 
+		@cubeMarkTex.bind(4)
+		@shader.linkSampler('uMark', @cubeMarkTex)
 
 		@vertBuf.draw()
 		
@@ -287,5 +289,29 @@ class M3.Board
 		#@M.debug.drawRay @M.agent.worldPointer, 500
 		#return
 		## ## END DEBUG
+
+
+	clear_current: () ->
+		for i in [0..@szX-1]
+			for j in [0..@szY-1]
+				for k in [0..@szZ-1]
+					if @cubes[i][j][k].focus == FOCUS_HOVER
+						# don't open flagged boxes
+						if @cubes[i][j][k].state == STATE_FLAGGED
+							return
+						@cubes[i][j][k].state = STATE_EMPTY
+						return
+
+	mark_current: () ->
+		for i in [0..@szX-1]
+			for j in [0..@szY-1]
+				for k in [0..@szZ-1]
+					if @cubes[i][j][k].focus == FOCUS_HOVER
+						if @cubes[i][j][k].state == STATE_FLAGGED
+							@cubes[i][j][k].state = STATE_NORMAL
+						else
+							@cubes[i][j][k].state = STATE_FLAGGED
+						return
+
 
 

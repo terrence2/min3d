@@ -93,6 +93,7 @@
 	uniform vec3 uSunDir;
 	uniform vec4 uSunColor;
 	
+	varying float vState;
 	varying vec4 vColor;
 	varying vec2 vTextureCoord;
 	varying vec3 vTLightVec;
@@ -122,22 +123,25 @@
 		vec3 h = (normalize(pos) + uSunDir) / 2.0;
 		vHalfVec = normalize(h);
 
+		// transform and apply base tc
+		gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		vTextureCoord = aTextureCoord;
+		vState = aState;
+
 		// set color modifier based on state and focus status		
 		if(aState == 0.0) { // normal
 			vColor = vec4(1.0, 1.0, 1.0, 1.0);
 		} else if(aState == 1.0) { // empty
 			vColor = vec4(0.0, 0.0, 0.0, 0.0);
+		} else if(aState == 2.0) { // flagged
+			vColor = vec4(1.0, 0.7, 0.7, 1.0);
 		} else {
-			vColor = vec4(1.0, 0.0, 0.0, 1.0);
+			vColor = vec4(1.0, 0.0, 1.0, 1.0);
 		}
 		
-		if(aFocus == 1.0) {
+		if(aFocus == 1.0 && aState != 2.0) {
 			vColor *= vec4(0.7, 0.7, 1.0, 1.0);
 		}
-
-		// transform and apply base tc
-		gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-		vTextureCoord = aTextureCoord;
 	}
 </script>
 <script id="cube-fs" type="x-shader/x-fragment">
@@ -145,15 +149,17 @@
 	precision highp float;
 	#endif
 
+	varying float vState;
+	varying vec4 vColor;
 	varying vec2 vTextureCoord;
 	varying vec3 vTLightVec;
 	varying vec3 vTEyeVec;
 	varying vec3 vHalfVec;
-	varying vec4 vColor;
 
 	uniform sampler2D uSampler;
 	uniform sampler2D uNormals;
 	uniform sampler2D uReflectivity;
+	uniform sampler2D uMark;
 	uniform samplerCube uSkymap;
 	
 	uniform vec3 uSunDir;
@@ -166,6 +172,12 @@
 		// lookup and compute base color
 		vec4 color = texture2D(uSampler, vTextureCoord);
 		color *= vColor;
+
+		// if flagged, overlay the flag color
+		if(vState >= 1.5 && vState < 2.5) { // flagged
+			vec4 mark = texture2D(uMark, 1.0 - vTextureCoord);
+			color = vColor * vec4(mix(color.xyz, mark.xyz, mark.w), 1.0);
+		}
 
 		// base ambient light
 		gl_FragColor = vec4(0.3, 0.3, 0.3, 1.0) * color;
@@ -186,15 +198,17 @@
 		// compute diffuse lighting
 		float lambertFactor = max(dot(vTLightVec, normal), 0.0);
 		if(lambertFactor > 0.0) {
-			vec4 mSpecular = vec4(1.0);
-			vec4 lSpecular = vec4(1.0);
-			float shininess = pow(max(dot(vHalfVec, normal), 0.0), 2.0);
 			gl_FragColor += vec4((color * uSunColor * lambertFactor).xyz, 1.0);
-			gl_FragColor += mSpecular * lSpecular * shininess;
+
+			//vec4 mSpecular = vec4(1.0);
+			//vec4 lSpecular = vec4(1.0);
+			//gl_FragColor += mSpecular * lSpecular * shininess;
+			float shininess = pow(max(dot(vHalfVec, normal), 0.0), 2.0);
 		}
 		
 		// mix in the background reflection
 		gl_FragColor += skycolor * texture2D(uReflectivity, vTextureCoord) / 2.25;
+
 	}
 </script>
 

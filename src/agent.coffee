@@ -78,8 +78,13 @@ class M3.Agent
 	turnright_off: (action) => @angReq[YAW] += 1.0
 
 
+	browser_leftclick: (action) =>
+	browser_middleclick: (action) =>
+	browser_rightclick: (action) =>
 	mouse_leftclick: (action) =>
+		@M.board.clear_current()
 	mouse_middleclick: (action) =>
+		@M.board.mark_current()
 	mouse_rightclick: (action) =>
 
 	mouse_dragturn_on: (x, y) => 
