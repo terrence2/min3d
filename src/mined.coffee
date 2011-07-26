@@ -131,14 +131,9 @@ class M3.Min3d
 
 
 	setupGL: ->
-		#FIXME: go fullscreen at some point
-		#@canvas.width = $(window).width()
-		#@canvas.height = $(window).height()
-		@aspectRatio = @canvas.width / @canvas.height
-
-		@gl.viewport(0, 0, @canvas.width, @canvas.height)
+		# set clear color to black
 		@gl.clearColor(0, 0, 0, 1)
-		
+	
 		# setup depth buffer testing
 		@gl.clearDepth 1
 		@gl.enable @gl.DEPTH_TEST
@@ -148,10 +143,11 @@ class M3.Min3d
 		@gl.enable @gl.CULL_FACE
 		@gl.frontFace @gl.CCW
 		@gl.cullFace @gl.BACK
-		
-		# setup perspective and model-view matricies
-		mat4.perspective(70, @canvas.width / @canvas.height, 0.1, 1000.0, @mP)
+
+		# initialize these -- then resize to set perspective correctly
+		mat4.identity(@mP)
 		mat4.identity(@mMV)
+		@onResize()
 
 		console.log("Supported Extensions: ", @gl.getSupportedExtensions())
 		
@@ -159,9 +155,10 @@ class M3.Min3d
 	onResize: (e) =>
 		@canvas.width = $(window).width()
 		@canvas.height = $(window).height()
+		@aspectRatio = @canvas.width / @canvas.height
 		@gl.viewport(0, 0, @canvas.width, @canvas.height)
-		mat4.identity(@mP)
-		mat4.perspective(45, @canvas.width / @canvas.height, 0.1, 100.0, @mP)
+		# setup perspective and model-view matricies
+		mat4.perspective(60, @canvas.width / @canvas.height, 0.1, 10000.0, @mP)
 		
 
 	# MODEL_VIEW glPushMatrix
