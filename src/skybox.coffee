@@ -24,7 +24,7 @@ class M3.Skybox
 		@gl = @M.gl
 
 		# sky selection
-		@cubeMap = @M.loadCubeMap "/cubemap/background0-gallpeters-1024/", ".png"
+		@cubeMap = @M.loadCubeMap "/cubemap/background0-1024/", ".png"
 		@sunPos = vec3.create([-2, -1, 1])
 		@sunDir = vec3.create(vec3.scale(@sunPos, -1))
 		@sunColor = new Float32Array([1.0, 0.99, 0.9, 1.0])
