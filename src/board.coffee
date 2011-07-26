@@ -168,10 +168,6 @@ class M3.Board
 
 		# the board has its own local coordinate center
 		@center = vec3.create([@szX * SCALE / 2, @szY * SCALE / 2, @szZ * SCALE / 2])
-	
-		# Empty out some cubes for testing
-		@cubes[1][2][2].state = STATE_EMPTY
-		@cubes[1][1][2].state = STATE_EMPTY
 
 		# the shader to draw the cubes		
 		@shader = M.loadShaderFromElements("cube-vs", "cube-fs",
@@ -189,6 +185,20 @@ class M3.Board
 		# put the board in view initially, just to make life easier
 		@center[2] += 50
 
+
+	# Set initial states from a text representation, face on.
+	initFromPlanarChars: (S) ->
+		if S.length != @szZ then throw "Incorrect Z dimension initing from state vector"
+		for i in [0..@szZ-1]
+			if S[i].length != @szY then throw "Incorrect Y dimension initing from state vector"
+			for j in [0..@szY-1]
+				if S[i][@szY - j - 1].length != @szX then throw "Incorrect X dimension initing from state vector"
+				for k in [0..@szX-1]
+					st = switch S[i][@szY - j - 1][k]
+						when "x" then STATE_NORMAL
+						when " " then STATE_EMPTY
+						when "m" then STATE_FLAGGED
+					@cubes[k][j][i].state = st
 
 	# Search for and apply focusing on cubes
 	updateFocus: ->

@@ -17,3 +17,17 @@
 # along with MIN3D.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
+M3.World =
+	makeStart: (M) ->
+		b = new M3.Board(M, 28, 7, 1)
+		b.initFromPlanarChars([[
+			"xx   xx m x   x  xxx  xxxx  "
+			"xx   xx   xx  x x   x x   x "
+			"x x x x x x x x     x x    x"
+			"x x x x x x x x   xx  x    x"
+			"x  x  x x x  xx     x x    x"
+			"x  x  x x x   x x   x x   x "
+			"x     x x x   x  xxx  xxxx  "
+		]])
+		b.center = vec3.create([14 * 10, 3.5 * 10, 230])
+		return b
