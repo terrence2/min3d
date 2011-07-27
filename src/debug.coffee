@@ -20,10 +20,36 @@
 
 # Utility functions
 class M3.Debug
+	VERTEX_SHADER = """
+		attribute vec3 aVertexPosition;
+
+		uniform mat4 uMVMatrix;
+		uniform mat4 uPMatrix;
+
+		void main(void) {
+			gl_PointSize = 3.0;
+			gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		}
+	"""
+
+	FRAGMENT_SHADER = """
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+
+		uniform vec4 uColor;
+	
+		void main(void) {
+			gl_FragColor = uColor;
+		}
+	"""
+	# /*
+
+
 	constructor: (@M) ->
 		@gl = @M.gl
 
-		@prog = M.loadShaderFromElements("color-vs", "color-fs",
+		@prog = @M.loadShaderFromStrings(VERTEX_SHADER, FRAGMENT_SHADER,
 			["aVertexPosition"], 
 			["uMVMatrix", "uPMatrix", "uColor"])
 		tri = [0.0, 0.0, 0.0,   0.0, -1.0, 0.0,   1.0, 0.0, 0.0]

@@ -29,10 +29,19 @@ layout ->
 			title "MIN3D"
 			meta charset: 'utf-8'
 			link rel: 'stylesheet', href: "/css/ui-darkness/jquery-ui-1.8.14.custom.css"
+			style '''
+			body {padding: 0px; margin: 0px;}
+			'''
 			script src: "/js/glMatrix-0.9.5.min.js"
 			script src: "/js/jquery-1.6.2.min.js"
 			script src: "/release/min3d.js"
-			
+			coffeescript ->
+				$().ready ->
+					mined_start()
 
 		body ->
+			canvas {id:'mined-canvas', tabindex:'1'}, ->
+				p "Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element."
+				
 			@content
+

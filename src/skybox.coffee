@@ -20,7 +20,7 @@
 
 
 class M3.Skybox
-	VERTEX = """
+	VERTEX_SHADER = """
 		attribute vec3 aVertexPosition;
 
 		uniform mat4 uMVMatrix;
@@ -35,7 +35,7 @@ class M3.Skybox
 		}
 	"""
 
-	FRAGMENT = """
+	FRAGMENT_SHADER = """
 		#ifdef GL_ES
 		precision highp float;
 		#endif
@@ -59,7 +59,7 @@ class M3.Skybox
 		@sunDir = vec3.create(vec3.scale(@sunPos, -1))
 		@sunColor = new Float32Array([1.0, 0.99, 0.9, 1.0])
 
-		@prog = @M.loadShaderFromStrings(VERTEX, FRAGMENT, 
+		@prog = @M.loadShaderFromStrings(VERTEX_SHADER, FRAGMENT_SHADER, 
 				["aVertexPosition"], ["uSampler", "uPMatrix", "uMVMatrix"])
 		@_buildSkybox()
 
