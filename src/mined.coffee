@@ -36,8 +36,7 @@ mined_start = ->
 
 
 class M3.Min3d
-
-	DATA_DIR = "file:///home/terrence/Projects/min3d/data"
+	DATA_DIR = 'data'
 
 	constructor: ->
 		# the model-view matrix and stack
