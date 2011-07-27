@@ -33,7 +33,7 @@ GOALS = \
 
 
 all: ${GOALS}
-	cat ${GOALS} > main.js
+	cat ${GOALS} > min3d.js
 
 watch:
 	while inotifywait src/*; do make; done
