@@ -24,7 +24,7 @@ element id's on the current html document and a map for attribute and uniform
 names to attach to the underlying program id.
 ###
 class M3.ShaderProgram
-	constructor: (@M, vshader_id, fshader_id, aNames, uNames) ->
+	constructor: (@M, vshader_id, fshader_id, aNames, uNames, literal) ->
 		@gl = @M.gl
 
 		# vertex shader id (WebGLShader)
@@ -34,7 +34,13 @@ class M3.ShaderProgram
 		@fshader = null
 		
 		# program id (WebGLProgram)
-		@prog = @loadProgram vshader_id, fshader_id, aNames, uNames
+		if literal? and literal
+			@vshader = @loadShaderFromString vshader_id, @gl.VERTEX_SHADER
+			@fshader = @loadShaderFromString fshader_id, @gl.FRAGMENT_SHADER
+		else
+			@vshader = @loadShaderFromElement vshader_id
+			@fshader = @loadShaderFromElement fshader_id
+		@prog = @loadProgram @vshader, @fshader, aNames, uNames
 
 
 	# bind as part of current rendering state
@@ -108,10 +114,7 @@ class M3.ShaderProgram
 		console.log(id, enabled, size, stride, type, normalized)
 
 
-	loadProgram: (vshader_id, fshader_id, aNames, uNames) ->
-		@vshader = @loadShaderFromElement vshader_id
-		@fshader = @loadShaderFromElement fshader_id
-		
+	loadProgram: (@vshader, @fshader, aNames, uNames) ->
 		prog = @gl.createProgram()
 		@gl.attachShader prog, @vshader
 		@gl.attachShader prog, @fshader
@@ -147,16 +150,22 @@ class M3.ShaderProgram
 			if k.nodeType == 3
 				shader_str += k.textContent
 			k = k.nextSibling
+		shader_str = shader_str.textContent
 
 		switch elmt.type
 			when 'x-shader/x-fragment'
-				shader = @gl.createShader(@gl.FRAGMENT_SHADER)
+				shader_type = @gl.FRAGMENT_SHADER
 			when 'x-shader/x-vertex'
-				shader = @gl.createShader(@gl.VERTEX_SHADER)
+				shader_type = @gl.VERTEX_SHADER
 			else
 				throw "Unknown shader type: '#{elmt.type}'"
-		
-		@gl.shaderSource shader, shader_str.textContent
+
+		return @loadShaderFromString shader_str, shader_type
+
+
+	loadShaderFromString: (shader_str, shader_type) ->
+		shader = @gl.createShader shader_type
+		@gl.shaderSource shader, shader_str
 		@gl.compileShader shader
 		
 		res = @gl.getShaderParameter shader, @gl.COMPILE_STATUS
