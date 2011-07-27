@@ -20,6 +20,36 @@
 
 
 class M3.Skybox
+	VERTEX = """
+		attribute vec3 aVertexPosition;
+
+		uniform mat4 uMVMatrix;
+		uniform mat4 uPMatrix;
+
+		varying vec3 vTexCoord;
+
+		void main(void) {
+			gl_PointSize = 10.0;
+			gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+			vTexCoord = aVertexPosition;
+		}
+	"""
+
+	FRAGMENT = """
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+
+		uniform samplerCube uSampler;
+
+		varying vec3 vTexCoord;
+
+		void main(void) {
+			gl_FragColor = textureCube(uSampler, vTexCoord);
+		}
+	"""
+	# /*
+
 	constructor: (@M) ->
 		@gl = @M.gl
 
@@ -29,10 +59,8 @@ class M3.Skybox
 		@sunDir = vec3.create(vec3.scale(@sunPos, -1))
 		@sunColor = new Float32Array([1.0, 0.99, 0.9, 1.0])
 
-
-		@prog = @M.loadShaderFromElements("skybox-vs", "skybox-fs", 
+		@prog = @M.loadShaderFromStrings(VERTEX, FRAGMENT, 
 				["aVertexPosition"], ["uSampler", "uPMatrix", "uMVMatrix"])
-
 		@_buildSkybox()
 
 
