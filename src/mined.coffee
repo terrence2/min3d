@@ -194,6 +194,15 @@ class M3.Min3d
 		return shader
 
 
+	loadShaderFromStrings: (vshader, fshader, aNames, uNames) ->
+		index = vshader + ':' + fshader
+		if index in @shaders
+			return @shaders[index]
+		shader = new M3.ShaderProgram(this, vshader, fshader, aNames, uNames, true)
+		@shaders[ index ] = shader
+		return shader
+
+
 	loadTexture: (url) ->
 		url = DATA_DIR + url
 		if url in @textures
