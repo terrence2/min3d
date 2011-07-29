@@ -21,7 +21,6 @@ get '/': ->
 	render 'index'
 
 view index: ->
-	h1 'Hello, World!'
 
 layout ->
 	html ->
@@ -34,6 +33,7 @@ layout ->
 			'''
 			script src: "/js/glMatrix-0.9.5.min.js"
 			script src: "/js/jquery-1.6.2.min.js"
+			script src: "/js/jquery-ui-1.8.14.custom.min.js"
 			script src: "/release/min3d.js"
 			coffeescript ->
 				$().ready ->
@@ -41,7 +41,9 @@ layout ->
 
 		body ->
 			canvas {id:'mined-canvas', tabindex:'1'}, ->
-				p "Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element."
-				
-			@content
+				p """Your browser doesn't appear to support the HTML5 
+					<code>&lt;canvas&gt;</code> element."""
+			
+			div id:"start-button", ->
+				"Start"
 

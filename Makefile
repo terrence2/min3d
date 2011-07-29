@@ -29,6 +29,7 @@ GOALS = \
 	build/agent.js \
 	build/board.js \
 	build/skybox.js \
+	build/menu.js \
 	build/world.js 
 
 

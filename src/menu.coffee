@@ -19,5 +19,13 @@
 
 class M3.Menu
 	constructor: (@M) ->
+		e = $("#start-button")
+		e.button()
+		e.click (e) -> alert "foo"
+		e.css 'position': 'absolute'
+		e.css "top": (($(window).height() - e.outerHeight()) / 2) + $(window).scrollTop() + "px"
+		e.css "left": (($(window).width() - e.outerWidth()) / 2) + $(window).scrollLeft() + "px"
 
+# this.css("top", (($(window).height() - this.outerHeight()) / 2) + $(window).scrollTop() + "px");
+#    this.css("left", (($(window).width() - this.outerWidth()) / 2) + $(window).scrollLeft() + "px");
 

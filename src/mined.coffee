@@ -77,6 +77,9 @@ class M3.Min3d
 		# create a default game board
 		#@board = new M3.Board this, 3, 3, 3
 		@board = M3.World.makeStart this
+
+		# load the menu system
+		@menu = new M3.Menu this
 		
 		# hook up window resize handling
 		$( window ).resize(@onResize)
