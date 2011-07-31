@@ -51,6 +51,11 @@ class M3.Agent
 		@dragPrior = vec3.create()
 
 
+	reset: ->
+		@pos = vec3.create()
+		@ang = vec3.create()
+
+
 	forward_on: (action) => @mvReq[Z] -= 1.0
 	forward_off: (action) => @mvReq[Z] += 1.0
 	backward_on: (action) => @mvReq[Z] += 1.0
