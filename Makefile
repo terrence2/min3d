@@ -37,7 +37,7 @@ all: ${GOALS}
 	cat ${GOALS} > min3d.js
 
 watch:
-	while inotifywait src/*; do make; done
+	while inotifywait src/*; do sleep 0.1; make; done
 
 clean:
 	rm -f build/*.js
