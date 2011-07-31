@@ -1,6 +1,13 @@
-body {padding: 0px; margin: 0px;}
+body {
+	padding: 0px;
+	margin: 0px;
+	font-size: 1em;
+}
 .menu {
 	display: none;
 	position: absolute;
 }
 
+#main-custom {
+	width: 300px;
+}

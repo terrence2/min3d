@@ -39,6 +39,7 @@ class M3.Board
 
 
 	constructor: (@M, @szX, @szY, @szZ) ->
+		@nMines = 0
 		@size = vec3.create([@szX, @szY, @szZ])
 		console.log("Board size: " + vec3.str(@size))
 		@gl = @M.gl
@@ -196,6 +197,30 @@ class M3.Board
 						when "m" then STATE_FLAGGED
 					@cubes[k][j][i].state = st
 
+
+	# Setup n mines in the board randomly
+	fillRandomMines: (nMines) ->
+		positions = []
+		@nMines = nMines
+		while nMines > 0
+			# select x,y,z
+			x = Math.floor(Math.random() * @szX)
+			y = Math.floor(Math.random() * @szY)
+			z = Math.floor(Math.random() * @szZ)
+			# if we found a random position, set it, otherwise continue
+			if @cubes[x][y][z].content == CONTENT_NONE
+				@cubes[x][y][z].content = CONTENT_MINE
+				nMines -= 1
+				positions.push [x, y, z]
+		return positions
+
+
+	# As returned by fillRandomMines, for instance
+	fillMinesFromPositions: (positions) ->
+		for pos in positions
+			@cubes[pos[0]][pos[1]][pos[2]].content = CONTENT_MINE
+
+
 	# Search for and apply focusing on cubes
 	updateFocus: ->
 		# note: transform ray by world center to get the real coordinates
@@ -237,6 +262,28 @@ class M3.Board
 		@stateBuf.update(@stateData)
 
 
+	# get a cube position (in world space) from an i,j,k offset
+	getCubePos: (i, j, k) ->
+		return vec3.create([
+			i * SCALE - @center[0] + SCALE / 2,
+			j * SCALE - @center[1] + SCALE / 2,
+			k * SCALE - @center[2] + SCALE / 2
+		])
+
+	# return the minimum and maximum position of the board in world space
+	getExtents: ->
+		minPos = @getCubePos 0, 0, 0
+		minPos[0] -= SCALE / 2
+		minPos[1] -= SCALE / 2
+		minPos[2] -= SCALE / 2
+		maxPos = @getCubePos @szX-1, @szY-1, @szZ-1
+		maxPos[0] += SCALE / 2
+		maxPos[1] += SCALE / 2
+		maxPos[2] += SCALE / 2
+		return [minPos, maxPos]
+		
+
+	# clear the square that is currently hovered
 	clear_current: () ->
 		for i in [0..@szX-1]
 			for j in [0..@szY-1]
@@ -244,6 +291,11 @@ class M3.Board
 					if @cubes[i][j][k].focus == FOCUS_HOVER
 						# don't open flagged boxes
 						if @cubes[i][j][k].state == STATE_FLAGGED
+							return
+						# if we open a mined box, we die
+						if @cubes[i][j][k].content == CONTENT_MINE
+							minePos = @getCubePos i, j, k
+							@M.doDeath minePos
 							return
 						@cubes[i][j][k].state = STATE_EMPTY
 						return

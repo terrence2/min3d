@@ -74,13 +74,16 @@ class M3.Min3d
 		# load the skybox
 		@skybox = new M3.Skybox this
 
-		# create a default game board
-		#@board = new M3.Board this, 3, 3, 3
-		@board = M3.World.makeStart this
+		# load a world to track some state
+		@world = new M3.World this
 
 		# load the menu system
 		@menu = new M3.Menu this
-		
+
+		# create a default game board
+		@board = null
+		@doStart()
+
 		# hook up window resize handling
 		$( window ).resize(@onResize)
 		
@@ -182,6 +185,36 @@ class M3.Min3d
 	# PROJECTION glPopMatrix
 	pPop: ->
 		@mP = @sP.pop()
+
+
+	###
+	Enter the game start state
+	###
+	doStart: ->
+		@menu.nextState 'start'
+		@board = @world.makeStart()
+		@agent.reset()
+
+	###
+	Restart the current state.
+	###
+	doRestart: ->
+		@menu.nextState 'play'
+		@board = @world.resetLevel()
+		@world.positionAgentForBoard @board
+
+	###
+	Enter the death state.
+	###
+	doDeath: (minePos) ->
+		@menu.nextState 'death'
+
+	###
+	Load a new level with the given parameters.
+	###
+	loadCustomLevel: (nX, nY, nZ, nMines) ->
+		@board = @world.makeCustom nX, nY, nZ, nMines
+		@world.positionAgentForBoard @board
 
 	###
 	Create and return a shader, unless it is already loaded, in which case we 

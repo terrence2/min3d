@@ -46,7 +46,35 @@ layout ->
 				"Start"
 
 			div id:"main", 'class':'menu', ->
-				div id:"main-single", ->
-					"Play Single"
-				div id:"single-options"
-
+				div id:'main-accordian', ->
+					h3 ->
+						a href:"#", ->
+							"Custom Game"
+					div id:'main-custom', ->
+						div ->
+							span -> "Width: "
+							span id:"main-custom-slider-width-current", -> "5"
+						div id:"main-custom-slider-width"
+						div ->
+							span -> "Height: "
+							span id:"main-custom-slider-height-current", -> "5"
+						div id:"main-custom-slider-height"
+						div ->
+							span -> "Depth: "
+							span id:"main-custom-slider-depth-current", -> "5"
+						div id:"main-custom-slider-depth"
+						div ->
+							span -> "Mines: "
+							span id:"main-custom-slider-mines-current"
+						div id:"main-custom-slider-mines"
+						br()
+						div id:"main-custom-play", -> "Play"
+			
+			div id:"death-overlay", 'class':'menu'
+			div id:"death", 'class':'menu', ->
+				div -> "You have died."
+				div id:'death-undo', -> "Rewind"
+				div id:'death-restart', -> "Restart"
+				div id:'death-quit', -> "Quit"
+				
+				
