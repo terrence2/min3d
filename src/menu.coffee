@@ -19,13 +19,23 @@
 
 class M3.Menu
 	constructor: (@M) ->
-		e = $("#start-button")
-		e.button()
-		e.click (e) -> alert "foo"
-		e.css 'position': 'absolute'
-		e.css "top": (($(window).height() - e.outerHeight()) / 2) + $(window).scrollTop() + "px"
-		e.css "left": (($(window).width() - e.outerWidth()) / 2) + $(window).scrollLeft() + "px"
+		@enterStart()
+	
+	
+	enterStart: () =>
+		b = $("#start.menu")
+		b.css 'position': 'absolute'
+		b.button()
+		b.click @enterMainMenu
+		b.position {
+				of: $(window)
+				my: "center center"
+				at: "center bottom"
+				offset: "0 -100"
+				collision: "fit fit"
+			}
 
-# this.css("top", (($(window).height() - this.outerHeight()) / 2) + $(window).scrollTop() + "px");
-#    this.css("left", (($(window).width() - this.outerWidth()) / 2) + $(window).scrollLeft() + "px");
-
+	enterMainMenu: (e) =>
+		$("#start.menu").fadeOut()
+		$("#main.menu").fadeIn()
+		

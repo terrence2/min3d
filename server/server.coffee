@@ -44,6 +44,11 @@ layout ->
 				p """Your browser doesn't appear to support the HTML5 
 					<code>&lt;canvas&gt;</code> element."""
 			
-			div id:"start-button", ->
+			div id:"start", 'class':'menu', ->
 				"Start"
+
+			div id:"main", 'class':'menu', ->
+				div id:"main-single", ->
+					"Play Single"
+				div id:"single-options"
 
