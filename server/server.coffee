@@ -27,10 +27,8 @@ layout ->
 		head ->
 			title "MIN3D"
 			meta charset: 'utf-8'
-			link rel: 'stylesheet', href: "/css/ui-darkness/jquery-ui-1.8.14.custom.css"
-			style '''
-			body {padding: 0px; margin: 0px;}
-			'''
+			link rel: 'stylesheet', href: "/css/dark-hive/jquery-ui-1.8.14.custom.css"
+			link rel: 'stylesheet', href: "/css/min3d.css"
 			script src: "/js/glMatrix-0.9.5.min.js"
 			script src: "/js/jquery-1.6.2.min.js"
 			script src: "/js/jquery-ui-1.8.14.custom.min.js"
