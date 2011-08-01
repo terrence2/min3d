@@ -85,7 +85,7 @@ class M3.Min3d
 		@doStart()
 
 		# hook up window resize handling
-		$( window ).resize(@onResize)
+		$(window).resize(@onResize)
 		
 		# create the debug drawing instance
 		@debug = new M3.Debug(this)
