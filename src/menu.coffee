@@ -83,7 +83,7 @@ class M3.Menu
 			elmt.slider('option', "max", maxM)
 			elmt.slider('value', Math.floor(currentPos / currentMax * maxM))
 			minesCurrent.html(elmt.slider('value'))
-		minesCurrent.html(0.12 * maxMines())
+		minesCurrent.html(Math.floor(0.2 * maxMines()))
 			
 		$("#main-custom-slider-width").slider {
 			min: MIN_SIZE, max: MAX_SIZE, step: 1, value: 4,
