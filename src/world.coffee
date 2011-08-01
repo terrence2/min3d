@@ -49,7 +49,7 @@ class M3.World
 	positionAgentForBoard: (board) ->
 		[minPos, maxPos] = board.getExtents()
 		@M.agent.reset()
-		@M.agent.pos[2] = maxPos[2] + 10
+		@M.agent.pos[2] = maxPos[2] + 10 + (maxPos[0] - minPos[0]) / 2
 
 	
 	resetLevel: () ->
