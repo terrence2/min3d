@@ -37,16 +37,138 @@ class M3.Board
 	CONTENT_MINE = 1
 	CONTENT_CAKE = 2
 
-
+	
 	constructor: (@M, @szX, @szY, @szZ) ->
 		@nMines = 0
 		@size = vec3.create([@szX, @szY, @szZ])
 		console.log("Board size: " + vec3.str(@size))
 		@gl = @M.gl
 
-		###
-		 Each face has this form
+		# the board has its own local coordinate center
+		@center = vec3.create([@szX * SCALE / 2, @szY * SCALE / 2, @szZ * SCALE / 2])
+
+		# build the cube state list
+		@cubes = []
+		@nCubes = @szX * @szY * @szZ
+		for i in [0..@szX-1]
+			@cubes.push []
+			for j in [0..@szY-1]
+				@cubes[i].push []
+				for k in [0..@szZ-1]
+					pos = [i * SCALE, j * SCALE, k * SCALE]
+					@cubes[i][j].push({
+						state: STATE_NORMAL
+						focus: FOCUS_NONE
+						content: CONTENT_NONE
+						aabb: new M3.AABB(pos, [pos[0] + SCALE, pos[1] + SCALE, pos[2] + SCALE])
+					})
+
+
+		# create drawing stuff
+		@createCubeSurfaces()
+		@createNumberSurfaces()
+
+
+	# setup rendering bits for drawing the numbers floating next to the cubes
+	createNumberSurfaces: () ->
+		# create verts for the numbers
+		[verts, nElmts] = @_fillNumbers()		
+
+		# push the number vertices to the card
+		vertData = new Float32Array(verts);
+		@numberVertBuf = new M3.ArrayBuffer(@M, vertData, nElmts * 4, 
+			[{size: 4, type: @gl.FLOAT, offset: 0, normalize: false},
+			 {size: 3, type: @gl.FLOAT, offset: 16, normalize: false}], 
+			@gl.STATIC_DRAW, @gl.TRIANGLES)
+
+		# push the number states to the card
+		@numberStateData = new Float32Array(verts.length / nElmts * 1)
+		@numberStateBuf = new M3.ArrayBuffer(@M, @numberStateData, 4,
+			[{size: 1, type: @gl.FLOAT, offset:0, normalize:false}],
+			@gl.STATIC_DRAW)
+
+		# load shader for the numbers
+		uniforms = ["uMVMatrix", "uPMatrix"]
+		for i in [1..6]
+			uniforms.push ("uSampler" + String(i))
+		@numberShader = @M.loadShaderFromStrings(NUMBER_VERTEX_SHADER, NUMBER_FRAGMENT_SHADER, 
+			["aNumberPosition", "aVertexPosition", "aState"], uniforms)
 		
+		# load textures for the numbers
+		@numberTex = []
+		for n in [1..6]
+			@numberTex.push @M.loadTexture ("/materials/number/number0"+String(n)+"-128.png")
+
+
+	_fillNumbers: ->
+		#  world    sz     vert 
+		_verts = [
+			0, 0, 0, 1,  -1, -1, 0,
+			0, 0, 0, 1,   1, -1, 0,
+			0, 0, 0, 1,   1,  1, 0,
+			0, 0, 0, 1,   1,  1, 0,
+			0, 0, 0, 1,  -1,  1, 0,
+			0, 0, 0, 1,  -1, -1, 0,
+		]
+		nElmts = 7
+		
+		verts = []
+		extendVerts = (delta) =>
+			offset = 0
+			for val in _verts
+				if offset < 3 # position
+					verts.push(val + delta[offset])
+				else
+					verts.push(val)
+				offset += 1
+				offset %= nElmts
+		
+		for i in [-1..@szX]
+			posX = SCALE / 2 + SCALE * i
+			for j in [-1..@szY]
+				posY = SCALE / 2 + SCALE * j
+				for k in [-1..@szY]
+					posZ = SCALE / 2 + SCALE * k
+					extendVerts [posX, posY, posZ]
+
+		return [verts, nElmts]
+
+
+	# Setup the rendering bits for drawing the cubes
+	createCubeSurfaces: ->
+		# load the cube verts list
+		[verts, nElmts] = @_fillVerts()
+
+		# push the cube vertices to the card
+		vertData = new Float32Array(verts);
+		@cubeVertBuf = new M3.ArrayBuffer(@M, vertData, nElmts * 4, 
+			[{size: 3, type: @gl.FLOAT, offset: 0, normalize: false},
+			 {size: 2, type: @gl.FLOAT, offset: 12, normalize: false},
+			 {size: 3, type: @gl.FLOAT, offset: 20, normalize: false}], 
+			@gl.STATIC_DRAW, @gl.TRIANGLES)
+
+		# each frame we will also need to provide the state number to the
+		#	renderer, so create an array buffer for it
+		@cubeStateData = new Float32Array(verts.length / nElmts * 2)
+		@cubeStateBuf = new M3.ArrayBuffer(@M, @cubeStateData, 8,
+			[{size: 1, type: @gl.FLOAT, offset: 0, normalize: false}
+			 {size: 1, type: @gl.FLOAT, offset: 4, normalize: false}],
+			@gl.DYNAMIC_DRAW)
+
+		# the shader to draw the cubes		
+		@cubeShader = @M.loadShaderFromStrings(VERTEX_SHADER, FRAGMENT_SHADER,
+			["aVertexPosition", "aTextureCoord", "aVertexNormal", "aState", "aFocus"], 
+			["uMVMatrix", "uPMatrix", "uSampler", "uNormals", "uSkymap", "uReflectivity", "uMark", "uSunDir", "uSunColor"])
+		
+		# load textures for the cube
+		@cubeFaceTex = @M.loadTexture "/materials/cube/color-256.jpg"
+		@cubeNormalTex = @M.loadTexture "/materials/cube/normal-256.png"
+		@cubeReflectivityTex = @M.loadTexture "/materials/cube/reflectivity-256.png"
+		@cubeMarkTex = @M.loadTexture "/materials/cube/marked-512.png"
+
+
+	_fillVerts: ->
+		###
 		 The cube faces are arranged as
 		   ____
 		  / 4 /| <- 2
@@ -56,11 +178,6 @@ class M3.Board
 		   /\ 
 		   5
 
-		Side cube verts are arranged as:
-		 1---3   +---5   +---7
-		 | 0 | > | 1 | > | 2 | > back to 0,1 
-		 0___2   +___4   +---6
-		
 		###
 		# Note: we need per-face normals, so have to specify every vertex for 
 		#	every face here, rather than doing something clever with strips.
@@ -127,59 +244,21 @@ class M3.Board
 			for val in _verts
 				if offset < 3 # position
 					verts.push(val + delta[offset])
-				else # textureCoord
+				else
 					verts.push(val)
 				offset += 1
 				offset %= nElmts
-
-		# build all verts, the index list, and the cube state list
-		@cubes = []
-		@nCubes = @szX * @szY * @szZ
+		
+		# build all verts
 		n = 0
 		for i in [0..@szX-1]
-			@cubes.push []
 			for j in [0..@szY-1]
-				@cubes[i].push []
 				for k in [0..@szZ-1]
 					pos = [i * SCALE, j * SCALE, k * SCALE]
 					extendCube(n, pos)
-					@cubes[i][j].push({
-						state: STATE_NORMAL
-						focus: FOCUS_NONE
-						content: CONTENT_NONE
-						aabb: new M3.AABB(pos, [pos[0] + SCALE, pos[1] + SCALE, pos[2] + SCALE])
-					})
 					n += 1
 
-		# push vertex and index buffer to the card
-		vertData = new Float32Array(verts);
-		@vertBuf = new M3.ArrayBuffer(@M, vertData, 8 * 4, 
-			[{size: 3, type: @gl.FLOAT, offset: 0, normalize: false},
-			 {size: 2, type: @gl.FLOAT, offset: 12, normalize: false},
-			 {size: 3, type: @gl.FLOAT, offset: 20, normalize: false}], 
-			@gl.STATIC_DRAW, @gl.TRIANGLES)
-
-		# each frame we will also need to provide the state number to the
-		#	renderer, so create an array buffer for it
-		@stateData = new Float32Array(verts.length / nElmts * 2)
-		@stateBuf = new M3.ArrayBuffer(@M, @stateData, 8,
-			[{size: 1, type: @gl.FLOAT, offset: 0, normalize: false}
-			 {size: 1, type: @gl.FLOAT, offset: 4, normalize: false}],
-			@gl.DYNAMIC_DRAW)
-
-		# the board has its own local coordinate center
-		@center = vec3.create([@szX * SCALE / 2, @szY * SCALE / 2, @szZ * SCALE / 2])
-
-		# the shader to draw the cubes		
-		@shader = @M.loadShaderFromStrings(VERTEX_SHADER, FRAGMENT_SHADER,
-			["aVertexPosition", "aTextureCoord", "aVertexNormal", "aState", "aFocus"], 
-			["uMVMatrix", "uPMatrix", "uSampler", "uNormals", "uSkymap", "uReflectivity", "uMark", "uSunDir", "uSunColor"])
-		
-		# load textures for the cube
-		@cubeFaceTex = @M.loadTexture "/materials/cube/color-256.jpg"
-		@cubeNormalTex = @M.loadTexture "/materials/cube/normal-256.png"
-		@cubeReflectivityTex = @M.loadTexture "/materials/cube/reflectivity-256.png"
-		@cubeMarkTex = @M.loadTexture "/materials/cube/marked-512.png"
+		return [verts, nElmts]
 
 
 
@@ -196,9 +275,11 @@ class M3.Board
 						when " " then STATE_EMPTY
 						when "m" then STATE_FLAGGED
 					@cubes[k][j][i].state = st
+		@updateNumberStates()
 
 
-	# Setup n mines in the board randomly
+	# Setup n mines in the board randomly.
+	# @return a list of the positions where we placed the mines
 	fillRandomMines: (nMines) ->
 		positions = []
 		@nMines = nMines
@@ -212,6 +293,7 @@ class M3.Board
 				@cubes[x][y][z].content = CONTENT_MINE
 				nMines -= 1
 				positions.push [x, y, z]
+		@updateNumberStates()
 		return positions
 
 
@@ -219,6 +301,7 @@ class M3.Board
 	fillMinesFromPositions: (positions) ->
 		for pos in positions
 			@cubes[pos[0]][pos[1]][pos[2]].content = CONTENT_MINE
+		@updateNumberStates()
 
 
 	# Search for and apply focusing on cubes
@@ -256,13 +339,55 @@ class M3.Board
 					st = @cubes[i][j][k].state
 					fc = @cubes[i][j][k].focus
 					for m in [0..@nVertsPerCube-1]
-						@stateData[n] = st
-						@stateData[n+1] = fc
+						@cubeStateData[n] = st
+						@cubeStateData[n+1] = fc
 						n += 2
-		@stateBuf.update(@stateData)
+		@cubeStateBuf.update(@cubeStateData)
 
 
-	# get a cube position (in world space) from an i,j,k offset
+	# Count and apply number states to numbers
+	updateNumberStates: ->
+		# reset to 0's
+		for i in [0..@numberStateData.length-1]
+			@numberStateData[i] = 0.0
+		offset = 0 # offset into vert list
+		# for each numbered square
+		for i in [-1..@szX]
+			for j in [-1..@szY]
+				for k in [-1..@szZ]
+					cnt = 0
+
+					### NOTE: this is for 26-adjacency mode
+					# for each adjacent cube
+					for i0 in [-1..1]
+						for j0 in [-1..1]
+							for k0 in [-1..1]
+								i1 = i + i0
+								j1 = j + j0
+								k1 = k + k0
+								if 0 <= i1 < @szX and 0 <= j1 < @szY and 0 <= k1 < @szZ
+									if @cubes[i1][j1][k1].content == CONTENT_MINE
+										cnt += 1
+					###
+					
+					for [i0,j0,k0] in [[-1,0,0], [1,0,0], [0,-1,0], [0,1,0], [0,0,-1], [0,0,1]]
+						i1 = i + i0
+						j1 = j + j0
+						k1 = k + k0
+						if 0 <= i1 < @szX and 0 <= j1 < @szY and 0 <= k1 < @szZ
+							if @cubes[i1][j1][k1].content == CONTENT_MINE
+								cnt += 1
+						
+					
+					# for each vert in this number
+					for _ in [1..6]
+						@numberStateData[offset] = cnt
+						offset += 1
+
+		@numberStateBuf.update(@numberStateData)
+
+
+	# get a cube position (in world space) from an i,j,k cube index
 	getCubePos: (i, j, k) ->
 		return vec3.create([
 			i * SCALE - @center[0] + SCALE / 2,
@@ -314,6 +439,7 @@ class M3.Board
 
 	move: (dt) ->
 		;	
+
 
 	VERTEX_SHADER = """
 		attribute vec3 aVertexPosition;
@@ -446,6 +572,82 @@ class M3.Board
 
 		}
 	"""
+
+	NUMBER_VERTEX_SHADER = """
+		uniform mat4 uMVMatrix;
+		uniform mat4 uPMatrix;
+
+		attribute vec3 aVertexPosition;
+		attribute vec4 aNumberPosition;
+		attribute float aState;
+		
+		varying float vState;
+		varying vec2 vTexCoord;
+
+		void main(void) {
+			vState = aState;
+			
+			vec4 wpos = vec4(aNumberPosition.xyz, 1.0);
+			vec4 epos = uMVMatrix * wpos;
+			epos.xy += aVertexPosition.xy * aNumberPosition.w; 
+			gl_Position = uPMatrix * epos;
+			vTexCoord = vec2(aVertexPosition.x, -aVertexPosition.y) * 0.5 + vec2(0.5);
+		}
+	"""
+	
+	NUMBER_FRAGMENT_SHADER = """
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+
+		uniform sampler2D uSampler1;
+		uniform sampler2D uSampler2;
+		uniform sampler2D uSampler3;
+		uniform sampler2D uSampler4;
+		uniform sampler2D uSampler5;
+		uniform sampler2D uSampler6;
+
+		varying float vState;
+		varying vec2 vTexCoord;
+
+		void main(void) {
+			vec3 color = vec3(1.0, 1.0, 1.0);
+			vec4 alpha = vec4(1.0, 1.0, 1.0, 1.0);
+		
+			if(vState < 0.5) {
+				discard;
+			} else if(0.5 <= vState && vState < 1.5) { // 1
+				color = vec3(0.0, 0.0, 1.0);
+				alpha = texture2D(uSampler1, vTexCoord);
+			} else if(1.5 <= vState && vState < 2.5) { // 2
+				color = vec3(0.0, 1.0, 0.0);
+				alpha = texture2D(uSampler2, vTexCoord);
+			} else if(2.5 <= vState && vState < 3.5) { // 3
+				color = vec3(1.0, 0.0, 0.0);
+				alpha = texture2D(uSampler3, vTexCoord);
+			} else if(3.5 <= vState && vState < 4.5) { // 4
+				color = vec3(0.01, 0.0, 0.5);
+				alpha = texture2D(uSampler4, vTexCoord);
+			} else if(4.5 <= vState && vState < 5.5) { // 5
+				color = vec3(0.5, 0.0, 0.0);
+				alpha = texture2D(uSampler5, vTexCoord);
+			} else if(5.5 <= vState && vState < 6.5) { // 6
+				color = vec3(0.0, 0.5, 0.51);
+				alpha = texture2D(uSampler6, vTexCoord);
+			} else {
+				color = vec3(1.0, 0.0, 1.0);
+			}
+
+			// NOTE: we do this without blending so that we can avoid a large
+			//		sort in the client code.  This still ends up looking pretty
+			//		good, although obviously not optimal.
+			if(alpha.x < 0.1) {
+				discard;
+			}
+
+			gl_FragColor = vec4(color, 1.0);
+		}
+	"""
 	# /*
 	
 
@@ -460,50 +662,65 @@ class M3.Board
 		mat4.translate(@M.mMV, vec3.negate(vec3.create(@center)))
 		
 		## CUBE
-		@shader.use()
-		@vertBuf.bind()
-		@shader.linkAttribute('aVertexPosition', @vertBuf, 0)
-		@shader.linkAttribute('aTextureCoord', @vertBuf, 1)
-		@shader.linkAttribute('aVertexNormal', @vertBuf, 2)
-		@stateBuf.bind()
-		@shader.linkAttribute('aState', @stateBuf, 0)
-		@shader.linkAttribute('aFocus', @stateBuf, 1)
-		@shader.linkUniformMatrix('uPMatrix', @M.mP)
-		@shader.linkUniformMatrix('uMVMatrix', @M.mMV)
-		@shader.linkUniformVec3('uSunDir', @M.skybox.sunDir)
-		@shader.linkUniformVec4('uSunColor', @M.skybox.sunColor)
+		@cubeShader.use()
+		@cubeVertBuf.bind()
+		@cubeShader.linkAttribute('aVertexPosition', @cubeVertBuf, 0)
+		@cubeShader.linkAttribute('aTextureCoord', @cubeVertBuf, 1)
+		@cubeShader.linkAttribute('aVertexNormal', @cubeVertBuf, 2)
+		@cubeStateBuf.bind()
+		@cubeShader.linkAttribute('aState', @cubeStateBuf, 0)
+		@cubeShader.linkAttribute('aFocus', @cubeStateBuf, 1)
+		@cubeShader.linkUniformMatrix('uPMatrix', @M.mP)
+		@cubeShader.linkUniformMatrix('uMVMatrix', @M.mMV)
+		@cubeShader.linkUniformVec3('uSunDir', @M.skybox.sunDir)
+		@cubeShader.linkUniformVec4('uSunColor', @M.skybox.sunColor)
 
 		@cubeFaceTex.bind(0)
-		@shader.linkSampler('uSampler', @cubeFaceTex)
+		@cubeShader.linkSampler('uSampler', @cubeFaceTex)
 
 		@cubeNormalTex.bind(1)
-		@shader.linkSampler('uNormals', @cubeNormalTex)
+		@cubeShader.linkSampler('uNormals', @cubeNormalTex)
 
 		@cubeReflectivityTex.bind(2)
-		@shader.linkSampler('uReflectivity', @cubeReflectivityTex)
+		@cubeShader.linkSampler('uReflectivity', @cubeReflectivityTex)
 
 		@M.skybox.cubeMap.bind(3)
-		@shader.linkSampler('uSkymap', @M.skybox.cubeMap)
+		@cubeShader.linkSampler('uSkymap', @M.skybox.cubeMap)
 
 		@cubeMarkTex.bind(4)
-		@shader.linkSampler('uMark', @cubeMarkTex)
+		@cubeShader.linkSampler('uMark', @cubeMarkTex)
 
-		@vertBuf.draw()
+		@cubeVertBuf.draw()
 		
 		@cubeFaceTex.unbind()
 		@cubeNormalTex.unbind()
-		@shader.unuse()
-		
+		@cubeShader.unuse()
+
 		@gl.disable(@gl.BLEND)
+		
+		## NUMBERS
+		@numberShader.use()
+		@numberShader.linkUniformMatrix 'uPMatrix', @M.mP
+		@numberShader.linkUniformMatrix 'uMVMatrix', @M.mMV
+		@numberVertBuf.bind()
+		@numberShader.linkAttribute 'aNumberPosition', @numberVertBuf, 0
+		@numberShader.linkAttribute 'aVertexPosition', @numberVertBuf, 1
+		@numberStateBuf.bind()
+		@numberShader.linkAttribute 'aState', @numberStateBuf, 0
 
-		@M.mvPop()
+		i = 0
+		for tex in @numberTex
+			tex.bind(i)
+			@numberShader.linkSampler 'uSampler' + String(i + 1), tex
+			i += 1
 
+		@numberVertBuf.draw()
 
 		## ## DEBUG
 		#@M.debug.drawRay @M.agent.worldPointer, 500
 		#return
 		## ## END DEBUG
 
-
+		@M.mvPop()
 
 
