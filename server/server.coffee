@@ -53,15 +53,15 @@ layout ->
 					div id:'main-custom', ->
 						div ->
 							span -> "Width: "
-							span id:"main-custom-slider-width-current", -> "5"
+							span id:"main-custom-slider-width-current", -> "4"
 						div id:"main-custom-slider-width"
 						div ->
 							span -> "Height: "
-							span id:"main-custom-slider-height-current", -> "5"
+							span id:"main-custom-slider-height-current", -> "4"
 						div id:"main-custom-slider-height"
 						div ->
 							span -> "Depth: "
-							span id:"main-custom-slider-depth-current", -> "5"
+							span id:"main-custom-slider-depth-current", -> "4"
 						div id:"main-custom-slider-depth"
 						div ->
 							span -> "Mines: "
