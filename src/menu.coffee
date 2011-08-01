@@ -86,17 +86,17 @@ class M3.Menu
 		minesCurrent.html(Math.floor(0.2 * maxMines()))
 			
 		$("#main-custom-slider-width").slider {
-			min: MIN_SIZE, max: MAX_SIZE, step: 1, value: 4,
+			min: MIN_SIZE, max: MAX_SIZE, step: 1, value: Number(d.html()),
 			change: (e, ui) =>
 				w.html(ui.value); updateMines()
 		}
 		$("#main-custom-slider-height").slider {
-			min: MIN_SIZE, max: MAX_SIZE, step: 1, value: 4,
+			min: MIN_SIZE, max: MAX_SIZE, step: 1, value: Number(d.html()),
 			change: (e, ui) =>
 				h.html(ui.value); updateMines()
 		}
 		$("#main-custom-slider-depth").slider {
-			min: MIN_SIZE, max: MAX_SIZE, step: 1, value: 4,
+			min: MIN_SIZE, max: MAX_SIZE, step: 1, value: Number(d.html()),
 			change: (e, ui) =>
 				d.html(ui.value); updateMines()
 		}
