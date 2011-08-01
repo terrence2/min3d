@@ -76,5 +76,12 @@ layout ->
 				div id:'death-undo', -> "Rewind"
 				div id:'death-restart', -> "Restart"
 				div id:'death-quit', -> "Quit"
-				
-				
+			
+			div id:"win-overlay", 'class':'menu'
+			div id:"win", 'class':'menu', ->
+				div -> "Success!"
+				div id:'win-new', -> "New Game"
+				div id:'win-replay', -> "Replay"
+				div id:'win-continue', -> "Continue"
+				div id:'win-quit', -> "Quit"
+

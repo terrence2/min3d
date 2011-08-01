@@ -45,6 +45,15 @@ class M3.World
 		@state = ['custom', [nX, nY, nZ, positions]]
 		return b
 
+	
+	makeCustomLikeCurrent: () ->
+		if @state[0] != 'custom'
+			throw "World.makeCustomLikeCurrent is only valid when a custom map is running."
+		b = new M3.Board @M, @state[1][0], @state[1][1], @state[1][2]
+		positions = b.fillRandomMines @state[1][3].length
+		@state = ['custom', [@state[1][0], @state[1][1], @state[1][2], positions]]
+		return b
+
 
 	positionAgentForBoard: (board) ->
 		[minPos, maxPos] = board.getExtents()

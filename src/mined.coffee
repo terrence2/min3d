@@ -83,6 +83,8 @@ class M3.Min3d
 		# create a default game board
 		@board = null
 		@doStart()
+		#@loadCustomLevel 2, 2, 2, 1
+		#@menu.nextState 'play'
 
 		# hook up window resize handling
 		$(window).resize(@onResize)
@@ -204,10 +206,24 @@ class M3.Min3d
 		@world.positionAgentForBoard @board
 
 	###
+	Restart with the same layout, but different mines.
+	###
+	doNewGame: ->
+		@menu.nextState 'play'
+		@board = @world.makeCustomLikeCurrent()
+		@world.positionAgentForBoard @board
+
+	###
 	Enter the death state.
 	###
 	doDeath: (minePos) ->
 		@menu.nextState 'death'
+
+	###
+	Enter the win state.
+	###
+	doVictory: () ->
+		@menu.nextState 'win'
 
 	###
 	Load a new level with the given parameters.

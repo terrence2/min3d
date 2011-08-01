@@ -63,7 +63,6 @@ class M3.Board
 						aabb: new M3.AABB(pos, [pos[0] + SCALE, pos[1] + SCALE, pos[2] + SCALE])
 					})
 
-
 		# create drawing stuff
 		@createCubeSurfaces()
 		@createNumberSurfaces()
@@ -299,6 +298,7 @@ class M3.Board
 
 	# As returned by fillRandomMines, for instance
 	fillMinesFromPositions: (positions) ->
+		@nMines = positions.length
 		for pos in positions
 			@cubes[pos[0]][pos[1]][pos[2]].content = CONTENT_MINE
 		@updateNumberStates()
@@ -406,7 +406,32 @@ class M3.Board
 		maxPos[1] += SCALE / 2
 		maxPos[2] += SCALE / 2
 		return [minPos, maxPos]
-		
+
+
+	# Check for a victory condition.
+	# We win when all cubes that are not mines are cleared, _or_ when all cubes
+	#	that are mines are marked, and no non-mine cubes are marked.
+	isVictory: () ->
+		nCovered = 0
+		nCorrect = 0
+		nInval = 0
+		for i in [0..@szX-1]
+			for j in [0..@szY-1]
+				for k in [0..@szZ-1]
+					cb = @cubes[i][j][k]
+					if cb.state == STATE_FLAGGED
+						if cb.content == CONTENT_MINE
+							nCorrect += 1
+						else
+							nInval += 1
+					if cb.state != STATE_EMPTY
+						nCovered += 1
+		console.log(@nMines, nCorrect, nInval, nCovered)
+		if nCorrect == @nMines and nInval == 0
+			return true
+		if nCovered == @nMines
+			return true
+		return false
 
 	# clear the square that is currently hovered
 	clear_current: () ->
@@ -422,9 +447,14 @@ class M3.Board
 							minePos = @getCubePos i, j, k
 							@M.doDeath minePos
 							return
+						# clear the cube
 						@cubes[i][j][k].state = STATE_EMPTY
+						# check for victory
+						if @isVictory()
+							@M.doVictory()
 						return
 
+	# mark the currently focused cube as mined
 	mark_current: () ->
 		for i in [0..@szX-1]
 			for j in [0..@szY-1]
@@ -434,6 +464,9 @@ class M3.Board
 							@cubes[i][j][k].state = STATE_NORMAL
 						else
 							@cubes[i][j][k].state = STATE_FLAGGED
+						# check for victory
+						if @isVictory()
+							@M.doVictory()
 						return
 
 

@@ -24,12 +24,14 @@ class M3.Menu
 			main:  [@enterMain, @leaveMain]
 			play:  [@enterPlay, @leavePlay]
 			death: [@enterDeath, @leaveDeath]
+			win:   [@enterWin, @leaveWin]
 
 		# setup all states
 		@prepareStart()
 		@prepareMain()
 		@preparePlay()
 		@prepareDeath()
+		@prepareWin()
 	
 		@state = 'start'
 		@enterStart()
@@ -179,4 +181,46 @@ class M3.Menu
 	leaveDeath: (e) =>
 		$('#death.menu').fadeOut()
 		$('#death-overlay.menu').hide()
+
+
+	prepareWin: () ->
+		renew = $('#win-new')
+		renew.button()
+		renew.click => @M.doNewGame()
+
+		replay = $('#win-replay')
+		replay.button()
+		replay.click => @M.doRestart()
+
+		cont = $('#win-continue')
+		cont.button()
+		cont.click => @nextState 'play'
+
+		quit = $('#win-quit')
+		quit.button()
+		quit.click => @M.doStart()
+
+		m = $('#win.menu')
+		m.position {
+			of: $(window)
+			my: "center center"
+			at: "center center"
+			collision: "fit fit"
+		}
+		
+		overlay = $('#win-overlay.menu')
+		overlay.css {
+			width: $(window).width(), 
+			height: $(window).height(),
+			'background-color': 'black',
+			top: '0px',
+			left: '0px',
+		}
+
+	enterWin: (e) =>
+		$('#win-overlay.menu').fadeIn('slow')
+		$('#win.menu').fadeIn()
+	leaveWin: (e) =>
+		$('#win.menu').fadeOut()
+		$('#win-overlay.menu').hide()
 
