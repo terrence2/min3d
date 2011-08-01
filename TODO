@@ -1,0 +1,7 @@
+* make win conditions not active on the start screen
+* make continue option on win sticky, so it doesn't requery you at every move
+* add an (almost always present) button on the top corner to open the menu
+* skip menu transitions if current state = next state
+* auto-clear adjacent on clearing a 0
+* make clearing and marking available from the keyboard
+* experiment with more mouse modes
