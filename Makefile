@@ -31,10 +31,11 @@ GOALS = \
 	build/skybox.js \
 	build/menu.js \
 	build/world.js 
+TARGET=public/release/min3d.js
 
 
 all: ${GOALS}
-	cat ${GOALS} > min3d.js
+	cat ${GOALS} > ${TARGET}
 
 watch:
 	while inotifywait src/*; do sleep 0.1; make; done
