@@ -1,0 +1,7 @@
+{
+	"name": "MiN3D",
+	"version": "0.0.1",
+	"dependencies": {
+		"zappa": "0.1.5"
+	}
+}
