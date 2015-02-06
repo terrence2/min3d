@@ -17,71 +17,75 @@
 # along with MIN3D.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-get '/': ->
-	render 'index'
+require('zappajs') ->
+	console.log("STATIC PATH: " + __dirname + "/../public");
+	@use static: __dirname + '/../public'
 
-view index: ->
+	@get '/': ->
+		@render 'index'
 
-layout ->
-	html ->
-		head ->
-			title "MIN3D"
-			meta charset: 'utf-8'
-			link rel: 'stylesheet', href: "/css/dark-hive/jquery-ui-1.8.14.custom.css"
-			link rel: 'stylesheet', href: "/css/min3d.css"
-			script src: "/js/glMatrix-0.9.5.min.js"
-			script src: "/js/jquery-1.6.2.min.js"
-			script src: "/js/jquery-ui-1.8.14.custom.min.js"
-			script src: "/release/min3d.js"
-			coffeescript ->
-				$().ready ->
-					mined_start()
+	{doctype,html,head,title,script,link,meta,coffeescript,body,h1,h3,a,p,br,div,span,canvas} = @teacup
+	@view index: ->
+		doctype 5
+		html =>
+			head =>
+				title "MIN3D"
+				meta charset: 'utf-8'
+				link rel: 'stylesheet', href: "/css/dark-hive/jquery-ui-1.8.14.custom.css"
+				link rel: 'stylesheet', href: "/css/min3d.css"
+				script src: "/js/glMatrix-0.9.5.min.js"
+				script src: "/js/jquery-1.6.2.min.js"
+				script src: "/js/jquery-ui-1.8.14.custom.min.js"
+				script src: "/release/min3d.js"
+				coffeescript ->
+					$().ready ->
+						mined_start()
 
-		body ->
-			canvas {id:'mined-canvas', tabindex:'1'}, ->
-				p """Your browser doesn't appear to support the HTML5 
-					<code>&lt;canvas&gt;</code> element."""
-			
-			div id:"start", 'class':'menu', ->
-				"Start"
+			body ->
+				canvas {id:'mined-canvas', tabindex:'1'}, ->
+					p """Your browser doesn't appear to support the HTML5 
+						<code>&lt;canvas&gt;</code> element."""
 
-			div id:"main", 'class':'menu', ->
-				div id:'main-accordian', ->
-					h3 ->
-						a href:"#", ->
-							"Custom Game"
-					div id:'main-custom', ->
-						div ->
-							span -> "Width: "
-							span id:"main-custom-slider-width-current", -> "4"
-						div id:"main-custom-slider-width"
-						div ->
-							span -> "Height: "
-							span id:"main-custom-slider-height-current", -> "4"
-						div id:"main-custom-slider-height"
-						div ->
-							span -> "Depth: "
-							span id:"main-custom-slider-depth-current", -> "4"
-						div id:"main-custom-slider-depth"
-						div ->
-							span -> "Mines: "
-							span id:"main-custom-slider-mines-current"
-						div id:"main-custom-slider-mines"
-						br()
-						div id:"main-custom-play", -> "Play"
-			
-			div id:"death-overlay", 'class':'menu'
-			div id:"death", 'class':'menu', ->
-				div -> "You have died."
-				div id:'death-undo', -> "Rewind"
-				div id:'death-restart', -> "Restart"
-				div id:'death-quit', -> "Quit"
-			
-			div id:"win-overlay", 'class':'menu'
-			div id:"win", 'class':'menu', ->
-				div -> "Success!"
-				div id:'win-new', -> "New Game"
-				div id:'win-replay', -> "Replay"
-				div id:'win-continue', -> "Continue"
-				div id:'win-quit', -> "Quit"
+				div id:"start", 'class':'menu', ->
+					"Start"
+
+				div id:"main", 'class':'menu', ->
+					div id:'main-accordian', ->
+						h3 ->
+							a href:"#", ->
+								"Custom Game"
+						div id:'main-custom', ->
+							div ->
+								span -> "Width: "
+								span id:"main-custom-slider-width-current", -> "4"
+							div id:"main-custom-slider-width"
+							div ->
+								span -> "Height: "
+								span id:"main-custom-slider-height-current", -> "4"
+							div id:"main-custom-slider-height"
+							div ->
+								span -> "Depth: "
+								span id:"main-custom-slider-depth-current", -> "4"
+							div id:"main-custom-slider-depth"
+							div ->
+								span -> "Mines: "
+								span id:"main-custom-slider-mines-current"
+							div id:"main-custom-slider-mines"
+							br()
+							div id:"main-custom-play", -> "Play"
+
+				div id:"death-overlay", 'class':'menu'
+				div id:"death", 'class':'menu', ->
+					div -> "You have died."
+					div id:'death-undo', -> "Rewind"
+					div id:'death-restart', -> "Restart"
+					div id:'death-quit', -> "Quit"
+
+				div id:"win-overlay", 'class':'menu'
+				div id:"win", 'class':'menu', ->
+					div -> "Success!"
+					div id:'win-new', -> "New Game"
+					div id:'win-replay', -> "Replay"
+					div id:'win-continue', -> "Continue"
+					div id:'win-quit', -> "Quit"
 

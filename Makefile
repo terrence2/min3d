@@ -30,7 +30,8 @@ GOALS = \
 	build/board.js \
 	build/skybox.js \
 	build/menu.js \
-	build/world.js 
+	build/world.js \
+	build/server.js
 TARGET=public/release/min3d.js
 
 
@@ -42,6 +43,9 @@ watch:
 
 clean:
 	rm -f build/*.js
+
+build/%.js : server/%.coffee
+	coffee -o build -b -c $<
 
 build/%.js : src/%.coffee
 	coffee -o build -b -c $<

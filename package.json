@@ -1,7 +1,10 @@
 {
 	"name": "MiN3D",
 	"version": "0.0.1",
+	"repository": "https://github.com/terrence2/min3d",
 	"dependencies": {
-		"zappa": "0.1.5"
-	}
+		"zappajs": "1.x",
+		"coffee-script": "1.x"
+	},
+	"engines": { "node": "0.10.x" }
 }

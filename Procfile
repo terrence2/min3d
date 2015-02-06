@@ -1,1 +1,1 @@
-web: node_modules/zappa/bin/zappa server/server.coffee
+web: node build/server.js
